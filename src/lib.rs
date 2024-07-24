@@ -59,7 +59,9 @@ impl<T: SocialDBEventHandler + Send + Sync + 'static> Indexer for SocialDBIndexe
                     );
                     continue;
                 }
-                for (index_type, entries) in index {
+                let mut entries = index.into_iter().collect::<Vec<_>>();
+                entries.sort_by_key(|(index_type, _)| index_type.clone()); // preserve strict order
+                for (index_type, entries) in entries {
                     let Ok(entries) = serde_json::from_str::<IndexEntries>(&entries) else {
                         log::warn!(
                             "Failed to parse index entry at receipt {}: {}",

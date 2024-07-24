@@ -94,6 +94,6 @@ async fn handles_like_with_notify() {
 
     assert_eq!(
         serde_json::to_string(&indexer.0.data).unwrap(),
-        "[[\"nearversedao.near\",\"notify\",\"devgovgigs.near\",{\"item\":{\"blockHeight\":124058852,\"path\":\"devgovgigs.near/post/main\",\"type\":\"social\"},\"type\":\"like\"}],[\"nearversedao.near\",\"like\",{\"blockHeight\":124058852,\"path\":\"devgovgigs.near/post/main\",\"type\":\"social\"},{\"type\":\"like\"}]]"
+        "[[\"nearversedao.near\",\"like\",{\"blockHeight\":124058852,\"path\":\"devgovgigs.near/post/main\",\"type\":\"social\"},{\"type\":\"like\"}],[\"nearversedao.near\",\"notify\",\"devgovgigs.near\",{\"item\":{\"blockHeight\":124058852,\"path\":\"devgovgigs.near/post/main\",\"type\":\"social\"},\"type\":\"like\"}]]"
    );
 }
