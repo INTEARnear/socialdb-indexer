@@ -24,6 +24,7 @@ impl SocialDBEventHandler for PushToRedisStream {
     async fn handle_index(&mut self, event: SocialDBIndexEventData) {
         self.index_stream
             .emit_event(event.block_height, event, self.max_stream_size)
+            .await
             .expect("Failed to emit index event");
     }
 }
