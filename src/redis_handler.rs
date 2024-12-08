@@ -1,12 +1,13 @@
 use async_trait::async_trait;
 use inevents_redis::RedisEventStream;
-use intear_events::events::socialdb::index::{SocialDBIndexEvent, SocialDBIndexEventData};
+use inindexer::near_indexer_primitives::types::BlockHeight;
+use intear_events::events::socialdb::index::SocialDBIndexEvent;
 use redis::aio::ConnectionManager;
 
 use crate::SocialDBEventHandler;
 
 pub struct PushToRedisStream {
-    index_stream: RedisEventStream<SocialDBIndexEventData>,
+    index_stream: RedisEventStream<SocialDBIndexEvent>,
     max_stream_size: usize,
 }
 
@@ -21,10 +22,23 @@ impl PushToRedisStream {
 
 #[async_trait]
 impl SocialDBEventHandler for PushToRedisStream {
-    async fn handle_index(&mut self, event: SocialDBIndexEventData) {
+    async fn handle_index(&mut self, event: SocialDBIndexEvent) {
+        self.index_stream.add_event(SocialDBIndexEvent {
+            block_height: event.block_height,
+            block_timestamp_nanosec: event.block_timestamp_nanosec,
+            transaction_id: event.transaction_id,
+            receipt_id: event.receipt_id,
+            account_id: event.account_id,
+            index_type: event.index_type,
+            index_key: event.index_key,
+            index_value: event.index_value,
+        });
+    }
+
+    async fn flush_events(&mut self, block_height: BlockHeight) {
         self.index_stream
-            .emit_event(event.block_height, event, self.max_stream_size)
+            .flush_events(block_height, self.max_stream_size)
             .await
-            .expect("Failed to emit index event");
+            .expect("Failed to flush index stream");
     }
 }

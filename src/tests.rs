@@ -1,9 +1,10 @@
 use async_trait::async_trait;
 use inindexer::{
-    near_indexer_primitives::types::AccountId, neardata_server::NeardataServerProvider,
+    near_indexer_primitives::types::{AccountId, BlockHeight},
+    neardata::NeardataProvider,
     run_indexer, BlockIterator, IndexerOptions, PreprocessTransactionsSettings,
 };
-use intear_events::events::socialdb::index::SocialDBIndexEventData;
+use intear_events::events::socialdb::index::SocialDBIndexEvent;
 use socialdb_indexer::{SocialDBEventHandler, SocialDBIndexer};
 
 #[derive(Default)]
@@ -13,7 +14,7 @@ struct TestIndexer {
 
 #[async_trait]
 impl SocialDBEventHandler for TestIndexer {
-    async fn handle_index(&mut self, event: SocialDBIndexEventData) {
+    async fn handle_index(&mut self, event: SocialDBIndexEvent) {
         self.data.push((
             event.account_id,
             event.index_type,
@@ -21,6 +22,8 @@ impl SocialDBEventHandler for TestIndexer {
             event.index_value,
         ));
     }
+
+    async fn flush_events(&mut self, _block_height: BlockHeight) {}
 }
 
 #[tokio::test]
@@ -29,7 +32,7 @@ async fn handles_dao_proposals() {
 
     run_indexer(
         &mut indexer,
-        NeardataServerProvider::mainnet(),
+        NeardataProvider::mainnet(),
         IndexerOptions {
             range: BlockIterator::iterator(122326018..=122326020),
             preprocess_transactions: Some(PreprocessTransactionsSettings {
@@ -54,7 +57,7 @@ async fn handles_posts() {
 
     run_indexer(
         &mut indexer,
-        NeardataServerProvider::mainnet(),
+        NeardataProvider::mainnet(),
         IndexerOptions {
             range: BlockIterator::iterator(124058850..=124058853),
             preprocess_transactions: Some(PreprocessTransactionsSettings {
@@ -79,7 +82,7 @@ async fn handles_like_with_notify() {
 
     run_indexer(
         &mut indexer,
-        NeardataServerProvider::mainnet(),
+        NeardataProvider::mainnet(),
         IndexerOptions {
             range: BlockIterator::iterator(124062482..=124062484),
             preprocess_transactions: Some(PreprocessTransactionsSettings {

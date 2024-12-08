@@ -3,18 +3,21 @@ pub mod redis_handler;
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use inindexer::near_indexer_primitives::types::AccountId;
+use inindexer::near_indexer_primitives::types::{AccountId, BlockHeight};
 use inindexer::near_indexer_primitives::views::{ActionView, ReceiptEnumView};
 use inindexer::near_indexer_primitives::StreamerMessage;
 use inindexer::{IncompleteTransaction, Indexer, TransactionReceipt};
-use intear_events::events::socialdb::index::SocialDBIndexEventData;
+use intear_events::events::socialdb::index::SocialDBIndexEvent;
 use serde::Deserialize;
 
 const SOCIALDB_CONTRACT: &str = "social.near";
 
 #[async_trait]
 pub trait SocialDBEventHandler: Send + Sync {
-    async fn handle_index(&mut self, mint: SocialDBIndexEventData);
+    async fn handle_index(&mut self, event: SocialDBIndexEvent);
+
+    /// Called after each block
+    async fn flush_events(&mut self, block_height: BlockHeight);
 }
 
 pub struct SocialDBIndexer<T: SocialDBEventHandler + Send + Sync + 'static>(pub T);
@@ -72,7 +75,7 @@ impl<T: SocialDBEventHandler + Send + Sync + 'static> Indexer for SocialDBIndexe
                     };
                     for entry in entries {
                         self.0
-                            .handle_index(SocialDBIndexEventData {
+                            .handle_index(SocialDBIndexEvent {
                                 block_height: receipt.block_height,
                                 block_timestamp_nanosec: receipt.block_timestamp_nanosec,
                                 transaction_id: transaction.transaction.transaction.hash,
@@ -87,6 +90,11 @@ impl<T: SocialDBEventHandler + Send + Sync + 'static> Indexer for SocialDBIndexe
                 }
             }
         }
+        Ok(())
+    }
+
+    async fn process_block_end(&mut self, block: &StreamerMessage) -> Result<(), Self::Error> {
+        self.0.flush_events(block.block.header.height).await;
         Ok(())
     }
 }
