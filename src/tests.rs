@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use inindexer::{
     near_indexer_primitives::types::{AccountId, BlockHeight},
     neardata::NeardataProvider,
-    run_indexer, BlockIterator, IndexerOptions, PreprocessTransactionsSettings,
+    run_indexer, BlockRange, IndexerOptions, PreprocessTransactionsSettings,
 };
 use intear_events::events::socialdb::index::SocialDBIndexEvent;
 use socialdb_indexer::{SocialDBEventHandler, SocialDBIndexer};
@@ -34,12 +34,14 @@ async fn handles_dao_proposals() {
         &mut indexer,
         NeardataProvider::mainnet(),
         IndexerOptions {
-            range: BlockIterator::iterator(122326018..=122326020),
             preprocess_transactions: Some(PreprocessTransactionsSettings {
                 prefetch_blocks: 0,
                 postfetch_blocks: 0,
             }),
-            ..Default::default()
+            ..IndexerOptions::default_with_range(BlockRange::Range {
+                start_inclusive: 122326018,
+                end_exclusive: Some(122326020),
+            })
         },
     )
     .await
@@ -59,12 +61,14 @@ async fn handles_posts() {
         &mut indexer,
         NeardataProvider::mainnet(),
         IndexerOptions {
-            range: BlockIterator::iterator(124058850..=124058853),
             preprocess_transactions: Some(PreprocessTransactionsSettings {
                 prefetch_blocks: 0,
                 postfetch_blocks: 0,
             }),
-            ..Default::default()
+            ..IndexerOptions::default_with_range(BlockRange::Range {
+                start_inclusive: 124058850,
+                end_exclusive: Some(124058853),
+            })
         },
     )
     .await
@@ -84,12 +88,14 @@ async fn handles_like_with_notify() {
         &mut indexer,
         NeardataProvider::mainnet(),
         IndexerOptions {
-            range: BlockIterator::iterator(124062482..=124062484),
             preprocess_transactions: Some(PreprocessTransactionsSettings {
                 prefetch_blocks: 0,
                 postfetch_blocks: 0,
             }),
-            ..Default::default()
+            ..IndexerOptions::default_with_range(BlockRange::Range {
+                start_inclusive: 124062482,
+                end_exclusive: Some(124062484),
+            })
         },
     )
     .await
