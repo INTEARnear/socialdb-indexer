@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use inindexer::{
     near_indexer_primitives::types::{AccountId, BlockHeight},
     neardata::NeardataProvider,
-    run_indexer, BlockRange, IndexerOptions, PreprocessTransactionsSettings,
+    run_indexer, BlockRange, IndexerOptions,
 };
 use intear_events::events::socialdb::index::SocialDBIndexEvent;
 use socialdb_indexer::{SocialDBEventHandler, SocialDBIndexer};
@@ -34,10 +34,7 @@ async fn handles_dao_proposals() {
         &mut indexer,
         NeardataProvider::mainnet(),
         IndexerOptions {
-            preprocess_transactions: Some(PreprocessTransactionsSettings {
-                prefetch_blocks: 0,
-                postfetch_blocks: 0,
-            }),
+            warm_up_blocks: 50,
             ..IndexerOptions::default_with_range(BlockRange::Range {
                 start_inclusive: 122326018,
                 end_exclusive: Some(122326020),
@@ -61,10 +58,7 @@ async fn handles_posts() {
         &mut indexer,
         NeardataProvider::mainnet(),
         IndexerOptions {
-            preprocess_transactions: Some(PreprocessTransactionsSettings {
-                prefetch_blocks: 0,
-                postfetch_blocks: 0,
-            }),
+            warm_up_blocks: 50,
             ..IndexerOptions::default_with_range(BlockRange::Range {
                 start_inclusive: 124058850,
                 end_exclusive: Some(124058853),
@@ -88,10 +82,7 @@ async fn handles_like_with_notify() {
         &mut indexer,
         NeardataProvider::mainnet(),
         IndexerOptions {
-            preprocess_transactions: Some(PreprocessTransactionsSettings {
-                prefetch_blocks: 0,
-                postfetch_blocks: 0,
-            }),
+            warm_up_blocks: 50,
             ..IndexerOptions::default_with_range(BlockRange::Range {
                 start_inclusive: 124062482,
                 end_exclusive: Some(124062484),

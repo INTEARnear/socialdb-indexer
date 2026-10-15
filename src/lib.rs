@@ -5,8 +5,9 @@ use std::collections::HashMap;
 use async_trait::async_trait;
 use inindexer::near_indexer_primitives::types::{AccountId, BlockHeight};
 use inindexer::near_indexer_primitives::views::{ActionView, ReceiptEnumView};
-use inindexer::near_indexer_primitives::StreamerMessage;
-use inindexer::{IncompleteTransaction, Indexer, TransactionReceipt};
+use inindexer::near_utils::is_receipt_successful;
+use inindexer::transaction_trees::TransactionTree;
+use inindexer::{Indexer, IndexerExecutionOutcomeWithReceipt, StreamerMessage};
 use intear_events::events::socialdb::index::SocialDBIndexEvent;
 use serde::Deserialize;
 
@@ -26,13 +27,16 @@ pub struct SocialDBIndexer<T: SocialDBEventHandler + Send + Sync + 'static>(pub 
 impl<T: SocialDBEventHandler + Send + Sync + 'static> Indexer for SocialDBIndexer<T> {
     type Error = String;
 
-    async fn on_receipt(
+    async fn process_receipt(
         &mut self,
-        receipt: &TransactionReceipt,
-        transaction: &IncompleteTransaction,
+        receipt: &IndexerExecutionOutcomeWithReceipt,
+        transaction: &TransactionTree,
         _block: &StreamerMessage,
     ) -> Result<(), Self::Error> {
-        if !receipt.is_successful(false) {
+        let receipt = transaction
+            .receipt(&receipt.receipt.receipt_id)
+            .expect("The tree has the receipts of the block it comes with");
+        if is_receipt_successful(&receipt.receipt) != Some(true) {
             return Ok(());
         }
         if receipt.receipt.receipt.receiver_id != SOCIALDB_CONTRACT {
